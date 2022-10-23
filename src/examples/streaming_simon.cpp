@@ -1,181 +1,472 @@
-/*
- * Copyright (C) 2006-2021  Music Technology Group - Universitat Pompeu Fabra
- *
- * This file is part of Essentia
- *
- * Essentia is free software: you can redistribute it and/or modify it under
- * the terms of the GNU Affero General Public License as published by the Free
- * Software Foundation (FSF), either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the Affero GNU General Public License
- * version 3 along with this program.  If not, see http://www.gnu.org/licenses/
- */
-
+#include <algorithm>
 #include <iostream>
 #include <essentia/algorithmfactory.h>
-#include <essentia/streaming/algorithms/poolstorage.h>
-#include <essentia/scheduler/network.h>
-#include "credit_libav.h"
 
 using namespace std;
 using namespace essentia;
-using namespace essentia::streaming;
-//using namespace essentia::standard;
-using namespace essentia::scheduler;
+using namespace essentia::standard;
 
+const char *styles[] = {
+    "Blues---Boogie Woogie",
+    "Blues---Chicago Blues",
+    "Blues---Country Blues",
+    "Blues---Delta Blues",
+    "Blues---Electric Blues",
+    "Blues---Harmonica Blues",
+    "Blues---Jump Blues",
+    "Blues---Louisiana Blues",
+    "Blues---Modern Electric Blues",
+    "Blues---Piano Blues",
+    "Blues---Rhythm & Blues",
+    "Blues---Texas Blues",
+    "Brass & Military---Brass Band",
+    "Brass & Military---Marches",
+    "Brass & Military---Military",
+    "Children's---Educational",
+    "Children's---Nursery Rhymes",
+    "Children's---Story",
+    "Classical---Baroque",
+    "Classical---Choral",
+    "Classical---Classical",
+    "Classical---Contemporary",
+    "Classical---Impressionist",
+    "Classical---Medieval",
+    "Classical---Modern",
+    "Classical---Neo-Classical",
+    "Classical---Neo-Romantic",
+    "Classical---Opera",
+    "Classical---Post-Modern",
+    "Classical---Renaissance",
+    "Classical---Romantic",
+    "Electronic---Abstract",
+    "Electronic---Acid",
+    "Electronic---Acid House",
+    "Electronic---Acid Jazz",
+    "Electronic---Ambient",
+    "Electronic---Bassline",
+    "Electronic---Beatdown",
+    "Electronic---Berlin-School",
+    "Electronic---Big Beat",
+    "Electronic---Bleep",
+    "Electronic---Breakbeat",
+    "Electronic---Breakcore",
+    "Electronic---Breaks",
+    "Electronic---Broken Beat",
+    "Electronic---Chillwave",
+    "Electronic---Chiptune",
+    "Electronic---Dance-pop",
+    "Electronic---Dark Ambient",
+    "Electronic---Darkwave",
+    "Electronic---Deep House",
+    "Electronic---Deep Techno",
+    "Electronic---Disco",
+    "Electronic---Disco Polo",
+    "Electronic---Donk",
+    "Electronic---Downtempo",
+    "Electronic---Drone",
+    "Electronic---Drum n Bass",
+    "Electronic---Dub",
+    "Electronic---Dub Techno",
+    "Electronic---Dubstep",
+    "Electronic---Dungeon Synth",
+    "Electronic---EBM",
+    "Electronic---Electro",
+    "Electronic---Electro House",
+    "Electronic---Electroclash",
+    "Electronic---Euro House",
+    "Electronic---Euro-Disco",
+    "Electronic---Eurobeat",
+    "Electronic---Eurodance",
+    "Electronic---Experimental",
+    "Electronic---Freestyle",
+    "Electronic---Future Jazz",
+    "Electronic---Gabber",
+    "Electronic---Garage House",
+    "Electronic---Ghetto",
+    "Electronic---Ghetto House",
+    "Electronic---Glitch",
+    "Electronic---Goa Trance",
+    "Electronic---Grime",
+    "Electronic---Halftime",
+    "Electronic---Hands Up",
+    "Electronic---Happy Hardcore",
+    "Electronic---Hard House",
+    "Electronic---Hard Techno",
+    "Electronic---Hard Trance",
+    "Electronic---Hardcore",
+    "Electronic---Hardstyle",
+    "Electronic---Hi NRG",
+    "Electronic---Hip Hop",
+    "Electronic---Hip-House",
+    "Electronic---House",
+    "Electronic---IDM",
+    "Electronic---Illbient",
+    "Electronic---Industrial",
+    "Electronic---Italo House",
+    "Electronic---Italo-Disco",
+    "Electronic---Italodance",
+    "Electronic---Jazzdance",
+    "Electronic---Juke",
+    "Electronic---Jumpstyle",
+    "Electronic---Jungle",
+    "Electronic---Latin",
+    "Electronic---Leftfield",
+    "Electronic---Makina",
+    "Electronic---Minimal",
+    "Electronic---Minimal Techno",
+    "Electronic---Modern Classical",
+    "Electronic---Musique Concrète",
+    "Electronic---Neofolk",
+    "Electronic---New Age",
+    "Electronic---New Beat",
+    "Electronic---New Wave",
+    "Electronic---Noise",
+    "Electronic---Nu-Disco",
+    "Electronic---Power Electronics",
+    "Electronic---Progressive Breaks",
+    "Electronic---Progressive House",
+    "Electronic---Progressive Trance",
+    "Electronic---Psy-Trance",
+    "Electronic---Rhythmic Noise",
+    "Electronic---Schranz",
+    "Electronic---Sound Collage",
+    "Electronic---Speed Garage",
+    "Electronic---Speedcore",
+    "Electronic---Synth-pop",
+    "Electronic---Synthwave",
+    "Electronic---Tech House",
+    "Electronic---Tech Trance",
+    "Electronic---Techno",
+    "Electronic---Trance",
+    "Electronic---Tribal",
+    "Electronic---Tribal House",
+    "Electronic---Trip Hop",
+    "Electronic---Tropical House",
+    "Electronic---UK Garage",
+    "Electronic---Vaporwave",
+    "Folk, World, & Country---African",
+    "Folk, World, & Country---Bluegrass",
+    "Folk, World, & Country---Cajun",
+    "Folk, World, & Country---Canzone Napoletana",
+    "Folk, World, & Country---Catalan Music",
+    "Folk, World, & Country---Celtic",
+    "Folk, World, & Country---Country",
+    "Folk, World, & Country---Fado",
+    "Folk, World, & Country---Flamenco",
+    "Folk, World, & Country---Folk",
+    "Folk, World, & Country---Gospel",
+    "Folk, World, & Country---Highlife",
+    "Folk, World, & Country---Hillbilly",
+    "Folk, World, & Country---Hindustani",
+    "Folk, World, & Country---Honky Tonk",
+    "Folk, World, & Country---Indian Classical",
+    "Folk, World, & Country---Laïkó",
+    "Folk, World, & Country---Nordic",
+    "Folk, World, & Country---Pacific",
+    "Folk, World, & Country---Polka",
+    "Folk, World, & Country---Raï",
+    "Folk, World, & Country---Romani",
+    "Folk, World, & Country---Soukous",
+    "Folk, World, & Country---Séga",
+    "Folk, World, & Country---Volksmusik",
+    "Folk, World, & Country---Zouk",
+    "Folk, World, & Country---Éntekhno",
+    "Funk / Soul---Afrobeat",
+    "Funk / Soul---Boogie",
+    "Funk / Soul---Contemporary R&B",
+    "Funk / Soul---Disco",
+    "Funk / Soul---Free Funk",
+    "Funk / Soul---Funk",
+    "Funk / Soul---Gospel",
+    "Funk / Soul---Neo Soul",
+    "Funk / Soul---New Jack Swing",
+    "Funk / Soul---P.Funk",
+    "Funk / Soul---Psychedelic",
+    "Funk / Soul---Rhythm & Blues",
+    "Funk / Soul---Soul",
+    "Funk / Soul---Swingbeat",
+    "Funk / Soul---UK Street Soul",
+    "Hip Hop---Bass Music",
+    "Hip Hop---Boom Bap",
+    "Hip Hop---Bounce",
+    "Hip Hop---Britcore",
+    "Hip Hop---Cloud Rap",
+    "Hip Hop---Conscious",
+    "Hip Hop---Crunk",
+    "Hip Hop---Cut-up/DJ",
+    "Hip Hop---DJ Battle Tool",
+    "Hip Hop---Electro",
+    "Hip Hop---G-Funk",
+    "Hip Hop---Gangsta",
+    "Hip Hop---Grime",
+    "Hip Hop---Hardcore Hip-Hop",
+    "Hip Hop---Horrorcore",
+    "Hip Hop---Instrumental",
+    "Hip Hop---Jazzy Hip-Hop",
+    "Hip Hop---Miami Bass",
+    "Hip Hop---Pop Rap",
+    "Hip Hop---Ragga HipHop",
+    "Hip Hop---RnB/Swing",
+    "Hip Hop---Screw",
+    "Hip Hop---Thug Rap",
+    "Hip Hop---Trap",
+    "Hip Hop---Trip Hop",
+    "Hip Hop---Turntablism",
+    "Jazz---Afro-Cuban Jazz",
+    "Jazz---Afrobeat",
+    "Jazz---Avant-garde Jazz",
+    "Jazz---Big Band",
+    "Jazz---Bop",
+    "Jazz---Bossa Nova",
+    "Jazz---Contemporary Jazz",
+    "Jazz---Cool Jazz",
+    "Jazz---Dixieland",
+    "Jazz---Easy Listening",
+    "Jazz---Free Improvisation",
+    "Jazz---Free Jazz",
+    "Jazz---Fusion",
+    "Jazz---Gypsy Jazz",
+    "Jazz---Hard Bop",
+    "Jazz---Jazz-Funk",
+    "Jazz---Jazz-Rock",
+    "Jazz---Latin Jazz",
+    "Jazz---Modal",
+    "Jazz---Post Bop",
+    "Jazz---Ragtime",
+    "Jazz---Smooth Jazz",
+    "Jazz---Soul-Jazz",
+    "Jazz---Space-Age",
+    "Jazz---Swing",
+    "Latin---Afro-Cuban",
+    "Latin---Baião",
+    "Latin---Batucada",
+    "Latin---Beguine",
+    "Latin---Bolero",
+    "Latin---Boogaloo",
+    "Latin---Bossanova",
+    "Latin---Cha-Cha",
+    "Latin---Charanga",
+    "Latin---Compas",
+    "Latin---Cubano",
+    "Latin---Cumbia",
+    "Latin---Descarga",
+    "Latin---Forró",
+    "Latin---Guaguancó",
+    "Latin---Guajira",
+    "Latin---Guaracha",
+    "Latin---MPB",
+    "Latin---Mambo",
+    "Latin---Mariachi",
+    "Latin---Merengue",
+    "Latin---Norteño",
+    "Latin---Nueva Cancion",
+    "Latin---Pachanga",
+    "Latin---Porro",
+    "Latin---Ranchera",
+    "Latin---Reggaeton",
+    "Latin---Rumba",
+    "Latin---Salsa",
+    "Latin---Samba",
+    "Latin---Son",
+    "Latin---Son Montuno",
+    "Latin---Tango",
+    "Latin---Tejano",
+    "Latin---Vallenato",
+    "Non-Music---Audiobook",
+    "Non-Music---Comedy",
+    "Non-Music---Dialogue",
+    "Non-Music---Education",
+    "Non-Music---Field Recording",
+    "Non-Music---Interview",
+    "Non-Music---Monolog",
+    "Non-Music---Poetry",
+    "Non-Music---Political",
+    "Non-Music---Promotional",
+    "Non-Music---Radioplay",
+    "Non-Music---Religious",
+    "Non-Music---Spoken Word",
+    "Pop---Ballad",
+    "Pop---Bollywood",
+    "Pop---Bubblegum",
+    "Pop---Chanson",
+    "Pop---City Pop",
+    "Pop---Europop",
+    "Pop---Indie Pop",
+    "Pop---J-pop",
+    "Pop---K-pop",
+    "Pop---Kayōkyoku",
+    "Pop---Light Music",
+    "Pop---Music Hall",
+    "Pop---Novelty",
+    "Pop---Parody",
+    "Pop---Schlager",
+    "Pop---Vocal",
+    "Reggae---Calypso",
+    "Reggae---Dancehall",
+    "Reggae---Dub",
+    "Reggae---Lovers Rock",
+    "Reggae---Ragga",
+    "Reggae---Reggae",
+    "Reggae---Reggae-Pop",
+    "Reggae---Rocksteady",
+    "Reggae---Roots Reggae",
+    "Reggae---Ska",
+    "Reggae---Soca",
+    "Rock---AOR",
+    "Rock---Acid Rock",
+    "Rock---Acoustic",
+    "Rock---Alternative Rock",
+    "Rock---Arena Rock",
+    "Rock---Art Rock",
+    "Rock---Atmospheric Black Metal",
+    "Rock---Avantgarde",
+    "Rock---Beat",
+    "Rock---Black Metal",
+    "Rock---Blues Rock",
+    "Rock---Brit Pop",
+    "Rock---Classic Rock",
+    "Rock---Coldwave",
+    "Rock---Country Rock",
+    "Rock---Crust",
+    "Rock---Death Metal",
+    "Rock---Deathcore",
+    "Rock---Deathrock",
+    "Rock---Depressive Black Metal",
+    "Rock---Doo Wop",
+    "Rock---Doom Metal",
+    "Rock---Dream Pop",
+    "Rock---Emo",
+    "Rock---Ethereal",
+    "Rock---Experimental",
+    "Rock---Folk Metal",
+    "Rock---Folk Rock",
+    "Rock---Funeral Doom Metal",
+    "Rock---Funk Metal",
+    "Rock---Garage Rock",
+    "Rock---Glam",
+    "Rock---Goregrind",
+    "Rock---Goth Rock",
+    "Rock---Gothic Metal",
+    "Rock---Grindcore",
+    "Rock---Grunge",
+    "Rock---Hard Rock",
+    "Rock---Hardcore",
+    "Rock---Heavy Metal",
+    "Rock---Indie Rock",
+    "Rock---Industrial",
+    "Rock---Krautrock",
+    "Rock---Lo-Fi",
+    "Rock---Lounge",
+    "Rock---Math Rock",
+    "Rock---Melodic Death Metal",
+    "Rock---Melodic Hardcore",
+    "Rock---Metalcore",
+    "Rock---Mod",
+    "Rock---Neofolk",
+    "Rock---New Wave",
+    "Rock---No Wave",
+    "Rock---Noise",
+    "Rock---Noisecore",
+    "Rock---Nu Metal",
+    "Rock---Oi",
+    "Rock---Parody",
+    "Rock---Pop Punk",
+    "Rock---Pop Rock",
+    "Rock---Pornogrind",
+    "Rock---Post Rock",
+    "Rock---Post-Hardcore",
+    "Rock---Post-Metal",
+    "Rock---Post-Punk",
+    "Rock---Power Metal",
+    "Rock---Power Pop",
+    "Rock---Power Violence",
+    "Rock---Prog Rock",
+    "Rock---Progressive Metal",
+    "Rock---Psychedelic Rock",
+    "Rock---Psychobilly",
+    "Rock---Pub Rock",
+    "Rock---Punk",
+    "Rock---Rock & Roll",
+    "Rock---Rockabilly",
+    "Rock---Shoegaze",
+    "Rock---Ska",
+    "Rock---Sludge Metal",
+    "Rock---Soft Rock",
+    "Rock---Southern Rock",
+    "Rock---Space Rock",
+    "Rock---Speed Metal",
+    "Rock---Stoner Rock",
+    "Rock---Surf",
+    "Rock---Symphonic Rock",
+    "Rock---Technical Death Metal",
+    "Rock---Thrash",
+    "Rock---Twist",
+    "Rock---Viking Metal",
+    "Rock---Yé-Yé",
+    "Stage & Screen---Musical",
+    "Stage & Screen---Score",
+    "Stage & Screen---Soundtrack",
+    "Stage & Screen---Theme",
+};
 
-bool hasFlag(char** begin, char** end, const string& option) {
-  return find(begin, end, option) != end;
-}
+void predict(std::vector<std::vector<Real>> &out)
+{
+  float max_mean = -1;
+  size_t max_i = -1;
 
-string getArgument(char** begin, char** end, const string& option) {
-  char** iter = find(begin, end, option);
-  if (iter != end && ++iter != end) return *iter;
-
-  return string();
-}
-
-void printHelp(string fileName) {
-    cout << "Usage: " << fileName << " pb_graph audio_input output_json [--help|-h] [--list-nodes|-l] [--patchwise|-p] [[-output-node|-o] node_name]" << endl;
-    cout << "  -h, --help: print this help" << endl;
-    cout << "  -l, --list-nodes: list the nodes in the input graph (model)" << endl;
-    cout << "  -p, --patchwise: write out patch-wise predctions (one per patch) instead of averaging them" << endl;
-    cout << "  -o, --output-node: node (layer) name to retrieve from the graph (default: model/Sigmoid)" << endl;
-    creditLibAV();
-}
-
-vector<string> flags({"-h", "--help",
-                      "-l", "--list-nodes",
-                      "-p", "--patchwise",
-                      "-o", "--output-node"});
-
-
-int main(int argc, char* argv[]) {
-  // Sanity check for the command line options.
-  for (char** iter = argv; iter < argv + argc; ++iter) {
-    if (**iter == '-') {
-      string flag(*iter);
-      if (find(flags.begin(), flags.end(), flag) == flags.end()){
-        cout << argv[0] << ": invalid option '" << flag << "'" << endl;
-        printHelp(argv[0]);
-        exit(1);
-      }
+  for (size_t i = 0; i < out[0].size(); i++)
+  {
+    float mean = 0;
+    for (const auto &row : out)
+    {
+      mean += row[i];
+    }
+    mean = mean / out[0].size();
+    if (mean > max_mean)
+    {
+      max_mean = mean;
+      max_i = i;
     }
   }
+  std::cout << "style Found : " << styles[max_i] << std::endl;
+}
 
-  if (hasFlag(argv, argv + argc, "--help") ||
-      hasFlag(argv, argv + argc, "-h")) {
-    printHelp(argv[0]);
-    exit(0);
-  }
-
-  string outputLayer = "PartitionedCall";
-
-  if (hasFlag(argv, argv + argc, "--list-nodes") ||
-      hasFlag(argv, argv + argc, "-l")) {
-    outputLayer = "";
-
-  } else if (hasFlag(argv, argv + argc, "--output-node") ) {
-    outputLayer = getArgument(argv, argv + argc, "--output-node");
-  
-  } else if (hasFlag(argv, argv + argc, "-o") ) {
-    outputLayer = getArgument(argv, argv + argc, "-o");
-  }
-
-  if ((argc < 4) || (argc > 8)) {
-    cout << argv[0] <<": incorrect number of arguments." << endl;
-    printHelp(argv[0]);
-    exit(1);
-  }
-
+int main(int argc, char *argv[])
+{
   string graphName = argv[1];
   string audioFilename = argv[2];
-  string outputFilename = argv[3];
+  int part = atoi(argv[3]);
 
-  // rather to output the patch-wise predictions or to average them.
-  const bool average = (hasFlag(argv, argv + argc, "--patchwise") ||
-                        hasFlag(argv, argv + argc, "-p")) ? false : true;
-
-  // register the algorithms in the factory(ies)
   essentia::init();
-
-  Pool pool;
-  Pool aggrPool;  // a pool for the the aggregated predictions
-  Pool* poolPtr = &pool;
-
-  /////// PARAMS //////////////
   Real sampleRate = 16000.0;
 
-  AlgorithmFactory& factory = streaming::AlgorithmFactory::instance();
-
-  Algorithm* audio = factory.create("MonoLoader",
+  AlgorithmFactory &factory = AlgorithmFactory::instance();
+  Algorithm *sound = factory.create("MonoLoader",
                                     "filename", audioFilename,
                                     "sampleRate", sampleRate);
+  Algorithm *tfp = factory.create("TensorflowPredictEffnetDiscogs",
+                                  "graphFilename", graphName);
 
-  Algorithm* tfp   = factory.create("TensorflowPredictEffnetDiscogs",
-                                    "graphFilename", graphName
-                                    );
+  std::vector<Real> audio = {};
+  sound->output("audio").set(audio);
+  sound->compute();
 
- // If the output layer is empty, we have already printed the list of nodes.
-  // Exit now.
-  if (outputLayer.empty()){
-    essentia::shutdown();
+  std::cout << "Analyzing " << audioFilename << std::endl;
+  std::cout << "total samples: " << audio.size() << std::endl;
+  unsigned size = audio.size() / part;
+  unsigned i = 0;
+  while (i < part)
+  {
+    std::cout << i + 1 << "th part" << std::endl;
+    std::cout << "Analyzing " << size << " samples" << std::endl;
+    std::vector<Real> copy(size);
+    std::copy(audio.begin() + size * i, audio.begin() + size * (i + 1), copy.begin());
+    std::vector<std::vector<Real>> out = {};
+    tfp->input("signal").set(copy);
+    tfp->output("predictions").set(out);
+    tfp->compute();
 
-    return 0;
+    predict(out);
+    i++;
   }
-
-  /////////// CONNECTING THE ALGORITHMS ////////////////
-  cout << "-------- connecting algos --------" << endl;
-
-  audio->output("audio")     >>  tfp->input("signal");
-  tfp->output("predictions") >>  PC(pool, "predictions");
-
-
-  /////////// STARTING THE ALGORITHMS //////////////////
-  cout << "-------- start processing " << audioFilename << " --------" << endl;
-
-
-  // create a network with our algorithms...
-  Network n(audio);
-  // ...and run it, easy as that!
-  n.run();
- 
-  if (average) {
-    // aggregate the results
-    cout << "-------- averaging the predictions --------" << endl;
-
-    const char* stats[] = {"mean"};
-
-    standard::Algorithm* aggr = standard::AlgorithmFactory::create("PoolAggregator",
-                                                                  "defaultStats", arrayToVector<string>(stats));
-
-    aggr->input("input").set(pool);
-    aggr->output("output").set(aggrPool);
-    aggr->compute();
-
-    poolPtr = &aggrPool;
-
-    delete aggr;
-  }
-
-  // write results to file
-  cout << "-------- writing results to json file " << outputFilename << " --------" << endl;
-
-  standard::Algorithm* output = standard::AlgorithmFactory::create("YamlOutput",
-                                                                   "format", "json",
-                                                                   "filename", outputFilename);
-  output->input("pool").set(*poolPtr);
-  output->compute();
-  n.clear();
-
-  delete output;
-  essentia::shutdown();
-
-  return 0;
 }
