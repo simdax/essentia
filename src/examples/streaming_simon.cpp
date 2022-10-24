@@ -6,7 +6,7 @@ using namespace std;
 using namespace essentia;
 using namespace essentia::standard;
 
-const char *styles[] = {
+static const char *styles[] = {
     "Blues---Boogie Woogie",
     "Blues---Chicago Blues",
     "Blues---Country Blues",
