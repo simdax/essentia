@@ -1,5 +1,6 @@
 
 export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@2.8/lib/pkgconfig"
+#export PKG_CONFIG_PATH="/Users/SX/Documents/soundx-ai/FFFmpeg-iOS-build-script/thin/arm64/lib/pkgconfig"
 AVCODEC=`pkg-config --libs libavcodec`
 AVFORMAT=`pkg-config --libs libavformat`
 AVUTIL=`pkg-config --libs libavutil`

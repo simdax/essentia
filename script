@@ -1,8 +1,0 @@
-brew unlink ffmpeg 
-
-brew install pkg-config readline sqlite gdbm freetype libpng eigen libyaml fftw ffmpeg@2.8 libsamplerate libtag tensorflow
-
-export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@2.8/lib/pkgconfig"
-
-CC=clang CXX=clang++ python3 waf configure --build-static --with-tensorflow 
-python3 waf

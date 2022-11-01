@@ -30,7 +30,7 @@
 #include "config.h"
 #include "debugging.h"
 #include "streamutil.h"
-#include <unsupported/Eigen/CXX11/Tensor>
+#include "unsupported/Eigen/CXX11/Tensor"
 
 
 // fixed-size int types

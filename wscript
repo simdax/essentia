@@ -179,6 +179,7 @@ def configure(ctx):
         #ctx.env.LINKFLAGS = [ '-stdlib=libc++' ]
 
         ctx.env.DEFINES += ['GTEST_HAS_TR1_TUPLE=0']
+        ctx.env.CXXFLAGS += [ '-Wno-undefined-var-template', '-Wno-deprecated-declarations']
         # for defining static const variables in header
         # ctx.env.CXXFLAGS += [ '-Wno-static-float-init' ]
         # add /usr/local/include as the brew formula for yaml doesn't have
