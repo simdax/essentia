@@ -6,7 +6,7 @@ algos=\
 UnaryOperator,TensorflowInputMusiCNN,TensorToPool,TensorToVectorReal,\
 Resample,\
 TensorflowPredictEffnetDiscogs,\
-TensorflowInputVggish,TensorflowPredictVggish,\
+TensorflowInputVGGish,TensorflowPredictVGGish,\
 TensorflowPredict,PoolToTensor,\
 FileOutputProxy,FrameCutter,VectorRealToTensor"
 
@@ -16,5 +16,9 @@ brew install ffmpeg@2.8
 export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@2.8/lib/pkgconfig"
 $python -m pip install numpy matplotlib pyyaml
 CC=clang CXX=clang++ $python waf configure --build-static --with-tensorflow --with-python --include-algos="$algos"
-$python waf
 sudo $python waf install
+
+CC=clang CXX=clang++ $python waf configure --cross-compile-ios-sim --build-static --include-algos="$algos" -o build_ios_sim
+$python waf
+CC=clang CXX=clang++ $python waf configure --cross-compile-ios --build-static --include-algos="$algos" -o build_ios
+$python waf
