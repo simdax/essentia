@@ -4,7 +4,9 @@ python="python3.9"
 algo=\
 "Resample,FFT,TriangularBands,Spectrum,Windowing,MelBands,Magnitude,NoiseAdder,\
 UnaryOperator,TensorflowInputMusiCNN,TensorToPool,TensorToVectorReal,\
-TensorflowPredictEffnetDiscogs,TensorflowPredict,PoolToTensor,\
+TensorflowPredictEffnetDiscogs,\
+TensorflowInputVggish,TensorflowPredictVggish,\
+TensorflowPredict,PoolToTensor,\
 FileOutputProxy,FrameCutter,VectorRealToTensor"
 
 brew unlink ffmpeg 
