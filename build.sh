@@ -15,10 +15,13 @@ brew install pkg-config readline sqlite gdbm freetype libpng eigen libyaml fftw 
 brew install ffmpeg@2.8 
 export PKG_CONFIG_PATH="/opt/homebrew/opt/ffmpeg@2.8/lib/pkgconfig"
 $python -m pip install numpy matplotlib pyyaml
-CC=clang CXX=clang++ $python waf configure --build-static --with-tensorflow --with-python --include-algos="$algos"
-sudo $python waf install
+CC=clang CXX=clang++ $python waf configure --fft=ACCELERATE --build-static --with-tensorflow --with-python --include-algos="$algos"
+$python waf 
+# sudo $python waf install
 
-CC=clang CXX=clang++ $python waf configure --cross-compile-ios-sim --build-static --include-algos="$algos" -o build_ios_sim
-$python waf
-CC=clang CXX=clang++ $python waf configure --cross-compile-ios --build-static --include-algos="$algos" -o build_ios
-$python waf
+# CC=clang CXX=clang++ $python waf configure --cross-compile-ios-sim --build-static --include-algos="$algos" -o build_iosSim
+# $python ./waf configure --cross-compile-ios-sim --lightweight= --fft=ACCELERATE --build-static -o build_iosSim
+# $python waf
+# # CC=clang CXX=clang++ $python waf configure --cross-compile-ios --build-static --include-algos="$algos" -o build_ios
+# $python ./waf configure --cross-compile-ios --lightweight= --fft=ACCELERATE --build-static -o build_ios
+# $python waf
